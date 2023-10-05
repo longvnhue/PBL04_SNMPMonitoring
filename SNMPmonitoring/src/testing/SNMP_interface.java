@@ -99,6 +99,53 @@ public class SNMP_interface extends JFrame {
 	}
 	
 	
+	public static int getMAXNum_hrStorageIndex(String agentIpAddress, String community)throws IOException{
+		int result = -1;
+		TransportMapping<?> transport = new DefaultUdpTransportMapping();
+        transport.listen();
+        Snmp snmp = new Snmp(transport);
+        snmp.listen();
+        CommunityTarget target = new CommunityTarget();
+        target.setCommunity(new OctetString(community));
+        target.setAddress(GenericAddress.parse(agentIpAddress));
+        target.setVersion(SnmpConstants.version2c);
+        target.setTimeout(3000);
+        PDU pdu = new PDU();
+        pdu.setType(PDU.GETNEXT);
+        pdu.add(new VariableBinding(new OID("1.3.6.1.2.1.25.2.3.1.1")));
+
+        while (true) {
+            ResponseEvent response = snmp.send(pdu, target);
+
+            if (response != null && response.getResponse() != null) {
+                VariableBinding vb = response.getResponse().get(0);
+                OID hrStorageIndexOID = vb.getOid();
+                
+                if (hrStorageIndexOID.startsWith(new OID("1.3.6.1.2.1.25.2.3.1.1."))) {
+                    int hrStorageIndexValue = hrStorageIndexOID.last();
+    
+                    // System.out.println("hrStorageIndex OID: " + hrStorageIndexOID);
+                    // System.out.println("hrStorageIndex Value: " + hrStorageIndexValue);
+                    result = Integer.max(result, hrStorageIndexValue);
+                    pdu.clear();
+                    pdu.setType(PDU.GETNEXT);
+                    pdu.add(new VariableBinding(hrStorageIndexOID));
+                } else {
+                    // System.out.println("No more hrStorageIndex values found.");
+                    break;
+                }
+            } else {
+                // System.out.println("No more hrStorageIndex values found.");
+                break;
+            }
+        }
+        snmp.close();
+        return result;
+	}
+	
+	
+	
+	
 	
 	public static int getMAXNum_Interfaces(String agentIpAddress, String community) throws IOException {
         int interfaceCount = -1;
@@ -170,7 +217,51 @@ public class SNMP_interface extends JFrame {
 		return result;
 	}
 	
-	
+	public static String[] GetFuLLName_Storage(String agentIpAddress, String community) throws IOException{
+		int n = getMAXNum_hrStorageIndex(agentIpAddress, community);
+		String[] res = new String[n];
+		try {
+            TransportMapping<?> transport = new DefaultUdpTransportMapping();
+            transport.listen();
+
+            CommunityTarget target = new CommunityTarget();
+            target.setCommunity(new OctetString(community));
+            target.setAddress(GenericAddress.parse(agentIpAddress));
+            target.setVersion(SnmpConstants.version2c);
+            target.setRetries(2);
+            target.setTimeout(5000);
+
+            Snmp snmp = new Snmp(transport);
+            PDU pdu = new PDU();
+            String cdOID = ".1.3.6.1.2.1.25.2.3.1.3.";
+            String OIDS[] = new String[n];
+            for (int i = 1 ; i <= n ; i = i + 1) {
+            	OIDS[i - 1] = cdOID + Integer.toString(i);
+            }
+            for (String oid : OIDS) {
+                pdu.add(new VariableBinding(new OID(oid)));
+            }
+            
+            pdu.setType(PDU.GET);
+
+            ResponseEvent event = snmp.send(pdu, target);
+            if (event != null) {
+                PDU responsePDU = event.getResponse();
+                if (responsePDU != null) {
+                	for (int i = 0 ; i < n; i++) {
+                		VariableBinding vb = event.getResponse().get(i);
+                		res[i] = vb.getVariable().toString();		
+                	}
+                }
+                else return null;
+            }
+            else return null;
+            snmp.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+		return res;
+	}
 	
 	public static String[] GetFuLLName_Interface(String agentIpAddress, String community) throws IOException{
 		
@@ -304,11 +395,18 @@ public class SNMP_interface extends JFrame {
 			        
 			        System.out.println(getMAXNum_Interfaces(agent, community));
 			        String[] nameINF = GetFuLLName_Interface(agent, community);
+			        String[] nameSto = GetFuLLName_Storage(agent, community);
 			        for (int i = 0 ; i < getMAXNum_Interfaces(agent, community) ; i++) {
 			        	System.out.println(nameINF[i]);
 			        }
 			        
 			        
+			        
+			        System.out.println(getMAXNum_hrStorageIndex(agent, community));
+			        
+			        for (int i = 0 ; i < getMAXNum_hrStorageIndex(agent, community) ; i++) {
+			        	System.out.println(nameSto[i]);
+			        }
 			        
 			        ResponseEvent response = snmp.get(pdu, target);
 			        if (response != null && response.getResponse() != null) {

@@ -14,4 +14,16 @@ public class HextoString {
 
         System.out.println("Chuỗi kí tự: " + result);
     }
+	
+	public static String deoi(String hexString) {
+		String[] hexArray = hexString.split(":");
+        byte[] bytes = new byte[hexArray.length];
+
+        for (int i = 0; i < hexArray.length; i++) {
+            bytes[i] = (byte) Integer.parseInt(hexArray[i], 16);
+        }
+
+        String result = new String(bytes);
+        return result;
+	}
 }
