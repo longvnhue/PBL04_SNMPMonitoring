@@ -34,7 +34,7 @@ public class MainTest extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        gaugeChart1.setMaxValue(70.0F);
+        gaugeChart1.setMaxValue(110.0F);
         gaugeChart1.setMinValue(0.0F);
         gaugeChart1.setThresholdIndicator(50.0F);
         gaugeChart1.setTitle("Test");

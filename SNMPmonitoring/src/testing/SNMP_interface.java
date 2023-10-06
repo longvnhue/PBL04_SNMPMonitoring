@@ -36,11 +36,13 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.util.OIDTextFormat;
 import java.util.Base64;
 import javax.swing.JToolBar;
+import java.awt.Canvas;
+import java.awt.Choice;
 
 
 public class SNMP_interface extends JFrame {
 
-	private testing.javaswingdev.gauge.GaugeChart gaugeChart1;
+	
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private int dem = 0;
@@ -512,8 +514,23 @@ public class SNMP_interface extends JFrame {
 		button_1.setFont(new Font("NSimSun", Font.BOLD, 15));
 		button_1.setBackground(Color.BLACK);
 		button_1.setActionCommand("button1");
-		button_1.setBounds(471, 10, 102, 25);
+		button_1.setBounds(655, 56, 102, 25);
 		contentPane.add(button_1);
+		
+		Choice choice = new Choice();
+		choice.setForeground(new Color(255, 0, 255));
+		choice.setFont(new Font("NSimSun", Font.BOLD, 15));
+		choice.setBounds(540, 10, 176, 20);
+		contentPane.add(choice);
+		
+		Button button_1_1 = new Button("Monitor Dial");
+		
+		button_1_1.setForeground(new Color(0, 255, 64));
+		button_1_1.setFont(new Font("NSimSun", Font.ITALIC, 15));
+		button_1_1.setBackground(Color.BLACK);
+		button_1_1.setActionCommand("button1");
+		button_1_1.setBounds(748, 10, 102, 25);
+		contentPane.add(button_1_1);
 		
 		
 		
@@ -573,6 +590,8 @@ public class SNMP_interface extends JFrame {
 			        	System.out.println(nameSto[i]);
 			        }
 			        
+			        
+			        
 			        DecimalFormat dfZ = new DecimalFormat("#.##");
 			        
 			        for (int i = 0 ; i < getMAXNum_hrStorageIndex(agent, community) ; i++) {
@@ -619,6 +638,7 @@ public class SNMP_interface extends JFrame {
 						textArea.append("Có " + getMAXNum_Interfaces(agent, community) + " loại bộ nhớ.  Thông tin của chúng như sau::\n\n");
 						for(int i = 0 ; i < getMAXNum_hrStorageIndex(agent, community) ; i++) {
 							textArea.append("\n"+Integer.toString(i+1) + ".  "+nameSto[i] + ":");
+							choice.add(nameSto[i]);
 							textArea.append("\n\n Tổng dung lượng: " + df.format(stoSize[i]) + "gb\n");
 							textArea.append("Dung lượng còn trống: " + df.format(stoSize[i] - stoUsed[i]) + "gb\n");
 							textArea.append("Tỉ lệ đã sử dụng: " + df.format((stoUsed[i]/stoSize[i]) * 100) + "%\n\n");
@@ -640,26 +660,115 @@ public class SNMP_interface extends JFrame {
 		});
 		button_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				testing.javaswingdev.gauge.GaugeChart gaugeChart1;
+				testing.javaswingdev.gauge.GaugeChart gaugeChart2;
 				String agent = "udp:" + textField.getText().toString() + "/161";
 				
 				String community = "public";
 				//JOptionPane.showMessageDialog(null, "dsfdf");
-				JFrame newFrame = new JFrame("Giao diện mới");
+				JFrame newFrame = new JFrame("Dial Monitor Traffics");
+				newFrame.getContentPane().setBackground(Color.decode("#C6ded7"));
+                newFrame.setSize(1000, 500);
+                testing.javaswingdev.gauge.GaugeChart[] gaugeCharts = new testing.javaswingdev.gauge.GaugeChart[5];
+                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                
+                for (int i = 0 ; i <= 4 ; i++) {
+                	gaugeCharts[i] = new testing.javaswingdev.gauge.GaugeChart();
+                }
+                
+                for (int i = 0 ; i <= 2 ; i++) {
+                	gaugeCharts[i].setFont(new Font("Tw Cen MT", Font.PLAIN, 15));
+                    
+                    gaugeCharts[i].setMaxValue(70.0F);
+                    gaugeCharts[i].setMinValue(0.0F);
+                    gaugeCharts[i].setThresholdIndicator(50.0F);
+                    gaugeCharts[i].setTitle("Test");
+                    gaugeCharts[i].setTrackStart(70.0F);
+                    gaugeCharts[i].setTrackStop(100.0F);
+                    gaugeCharts[i].setValueAnimate((float)((i + 2)*7.77));
+                    gaugeCharts[i].setBounds(0 + (i)*750, 0, 250, 250);
+                    newFrame.getContentPane().add(gaugeCharts[i]);
+                }
+                
+                gaugeCharts[2].setBounds(200,200,250,250);
+                // gaugeChart1 = new testing.javaswingdev.gauge.GaugeChart();
+                // gaugeChart1.setFont(new Font("Tw Cen MT", Font.PLAIN, 15));
+                // newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Đóng cửa sổ mới khi đóng nó
+                
+                // gaugeChart1.setMaxValue(70.0F);
+                // gaugeChart1.setMinValue(0.0F);
+                // gaugeChart1.setThresholdIndicator(50.0F);
+                // gaugeChart1.setTitle("Test");
+                // gaugeChart1.setTrackStart(70.0F);
+                // gaugeChart1.setTrackStop(100.0F);
+                // gaugeChart1.setValueAnimate((float)10);
+                // gaugeChart1.setBounds(0, 0, 150, 150);
+                // newFrame.add(gaugeChart1);
+                
+                // gaugeChart2 = new testing.javaswingdev.gauge.GaugeChart();
+                // gaugeChart2.setFont(new Font("Tw Cen MT", Font.PLAIN, 15));
+                
+                
+                // gaugeChart2.setMaxValue(70.0F);
+                // gaugeChart2.setMinValue(0.0F);
+                // gaugeChart2.setThresholdIndicator(50.0F);
+                // gaugeChart2.setTitle("Test44trgfrf");
+                // gaugeChart2.setTrackStart(70.0F);
+                // gaugeChart2.setTrackStop(100.0F);
+                // gaugeChart2.setValueAnimate((float)22);
+                // //gaugeChart2.setBounds(200, 0, 150, 150);
+                // newFrame.add(gaugeChart2);
+                
+                newFrame.setVisible(true);
+			}
+		});
+		
+		button_1_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				testing.javaswingdev.gauge.GaugeChart gaugeChart1;
+				String agent = "udp:" + textField.getText().toString() + "/161";
+				
+				String community = "public";
+				//JOptionPane.showMessageDialog(null, "dsfdf");
+				JFrame newFrame = new JFrame("Dial Monitor Traffics");
+				newFrame.getContentPane().setBackground(Color.decode("#C6ded7"));
                 newFrame.setSize(400, 400);
-                gaugeChart1 = new testing.javaswingdev.gauge.GaugeChart();
-                gaugeChart1.setFont(new Font("Tw Cen MT", Font.PLAIN, 15));
+                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+             	gaugeChart1 = new testing.javaswingdev.gauge.GaugeChart();
+                gaugeChart1.setFont(new Font("Tw Cen MT", Font.PLAIN, 12));
                 newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Đóng cửa sổ mới khi đóng nó
                 
-                gaugeChart1.setMaxValue(70.0F);
+                gaugeChart1.setMaxValue(100.0F);
                 gaugeChart1.setMinValue(0.0F);
                 gaugeChart1.setThresholdIndicator(50.0F);
-                gaugeChart1.setTitle("Test");
                 gaugeChart1.setTrackStart(70.0F);
                 gaugeChart1.setTrackStop(100.0F);
-                gaugeChart1.setValueAnimate((float)10);
-                newFrame.add(gaugeChart1);
-                newFrame.setVisible(true);
+                //gaugeChart1.setValueAnimate((float)10);
+                int index = -1;
+                float getUtilization = 0;
+                String choiced = choice.getSelectedItem();
+                System.out.println(choiced);
+                try {
+					String[] nameSto = GetFuLLName_Storage(agent, community);
+					double[] usedSto = GetFuLL_hrStorageUsed(agent, community);
+					double[] sizeSto = GetFuLL_hrStorageSize(agent, community);
+					int n = getMAXNum_hrStorageIndex(agent, community);
+					for (int i = 0 ; i < n ; i++) if (nameSto[i].equals(choiced)) {
+						 getUtilization = (float)((usedSto[i]/sizeSto[i]) * 100);
+						 //System.out.println(Double.toString((usedSto[i]/sizeSto[i]) * 100));
+						 index = i + 1;
+						 break;
+					}
+							
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+                gaugeChart1.setTitle("hrStorageIndex " + Integer.toString(index));
+                gaugeChart1.setValueAnimate(getUtilization);
                 
+                //gaugeChart1.setBounds(0, 0, 150, 150);
+                newFrame.add(gaugeChart1);
                 newFrame.setVisible(true);
 			}
 		});

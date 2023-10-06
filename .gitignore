@@ -2,8 +2,8 @@
 
 .classpath
 
-/.metadata/
+.metadata/
 
-/bin/
+SNMPmonitoring/bin/
 
-/settings/
+SNMPmonitoring/settings/
