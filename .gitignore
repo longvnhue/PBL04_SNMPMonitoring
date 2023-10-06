@@ -1,0 +1,9 @@
+*.jar
+
+.classpath
+
+.metadata/
+
+SNMPmonitoring/bin/
+
+SNMPmonitoring/.settings/
