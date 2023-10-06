@@ -3,6 +3,7 @@ package testing;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.Style;
@@ -34,10 +35,12 @@ import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.util.OIDTextFormat;
 import java.util.Base64;
+import javax.swing.JToolBar;
 
 
 public class SNMP_interface extends JFrame {
 
+	private testing.javaswingdev.gauge.GaugeChart gaugeChart1;
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private int dem = 0;
@@ -58,6 +61,7 @@ public class SNMP_interface extends JFrame {
 	public static final String hrSystemProcesses = ".1.3.6.1.2.1.25.1.6.0";
 	public static final String Input_bandwidth = ".1.3.6.1.2.1.2.2.1.5.2";
 	public static final String ipInReceies = ".1.3.6.1.4.1.2021.11.50";
+	public static final String test = ".1.3.6.1.2.1.25.2.3.1.4.1";
 	/**
 	 * Launch the application.
 	 */
@@ -263,6 +267,152 @@ public class SNMP_interface extends JFrame {
 		return res;
 	}
 	
+	public static int[] GetFuLL_hrStorageAllocationUnits(String agentIpAddress, String community) throws IOException{
+		int n = getMAXNum_hrStorageIndex(agentIpAddress, community);
+		int res[] = new int[n];
+		try {
+            TransportMapping<?> transport = new DefaultUdpTransportMapping();
+            transport.listen();
+
+            CommunityTarget target = new CommunityTarget();
+            target.setCommunity(new OctetString(community));
+            target.setAddress(GenericAddress.parse(agentIpAddress));
+            target.setVersion(SnmpConstants.version2c);
+            target.setRetries(2);
+            target.setTimeout(5000);
+
+            Snmp snmp = new Snmp(transport);
+            PDU pdu = new PDU();
+            String cdOID = ".1.3.6.1.2.1.25.2.3.1.4.";
+            String OIDS[] = new String[n];
+            for (int i = 1 ; i <= n ; i = i + 1) {
+            	OIDS[i - 1] = cdOID + Integer.toString(i);
+            }
+            for (String oid : OIDS) {
+                pdu.add(new VariableBinding(new OID(oid)));
+            }
+            
+            pdu.setType(PDU.GET);
+
+            ResponseEvent event = snmp.send(pdu, target);
+            if (event != null) {
+                PDU responsePDU = event.getResponse();
+                if (responsePDU != null) {
+                	for (int i = 0 ; i < OIDS.length; i++) {
+                		VariableBinding vb = event.getResponse().get(i);
+                		String results = vb.getVariable().toString();
+                		res[i] = Integer.parseInt(results);
+                	}
+                }
+                else return null;
+            }
+            else return null;
+            snmp.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+		return res;
+	}
+	
+	public static double[] GetFuLL_hrStorageSize(String agentIpAddress, String community)throws IOException{
+		int[] allocationUnits = GetFuLL_hrStorageAllocationUnits(agentIpAddress, community);
+		int n = getMAXNum_hrStorageIndex(agentIpAddress, community);
+		double[] res = new double[n];
+		try {
+            TransportMapping<?> transport = new DefaultUdpTransportMapping();
+            transport.listen();
+
+            CommunityTarget target = new CommunityTarget();
+            target.setCommunity(new OctetString(community));
+            target.setAddress(GenericAddress.parse(agentIpAddress));
+            target.setVersion(SnmpConstants.version2c);
+            target.setRetries(2);
+            target.setTimeout(5000);
+
+            Snmp snmp = new Snmp(transport);
+            PDU pdu = new PDU();
+            String cdOID = ".1.3.6.1.2.1.25.2.3.1.5.";
+            String OIDS[] = new String[n];
+            for (int i = 1 ; i <= n ; i = i + 1) {
+            	OIDS[i - 1] = cdOID + Integer.toString(i);
+            }
+            for (String oid : OIDS) {
+                pdu.add(new VariableBinding(new OID(oid)));
+            }
+            
+            pdu.setType(PDU.GET);
+
+            ResponseEvent event = snmp.send(pdu, target);
+            if (event != null) {
+                PDU responsePDU = event.getResponse();
+                if (responsePDU != null) {
+                	for (int i = 0 ; i < OIDS.length; i++) {
+                		VariableBinding vb = event.getResponse().get(i);
+                		double results = Long.parseLong(vb.getVariable().toString()) * allocationUnits[i];
+                		res[i] = (double)(results/1024/1024/1024);
+                		
+                	}
+                }
+                else return null;
+            }
+            else return null;
+            snmp.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+		return res;
+	}
+	
+	
+	public static double[] GetFuLL_hrStorageUsed(String agentIpAddress, String community)throws IOException{
+		int[] allocationUnits = GetFuLL_hrStorageAllocationUnits(agentIpAddress, community);
+		int n = getMAXNum_hrStorageIndex(agentIpAddress, community);
+		double[] res = new double[n];
+		try {
+            TransportMapping<?> transport = new DefaultUdpTransportMapping();
+            transport.listen();
+
+            CommunityTarget target = new CommunityTarget();
+            target.setCommunity(new OctetString(community));
+            target.setAddress(GenericAddress.parse(agentIpAddress));
+            target.setVersion(SnmpConstants.version2c);
+            target.setRetries(2);
+            target.setTimeout(5000);
+
+            Snmp snmp = new Snmp(transport);
+            PDU pdu = new PDU();
+            String cdOID = ".1.3.6.1.2.1.25.2.3.1.6.";
+            String OIDS[] = new String[n];
+            for (int i = 1 ; i <= n ; i = i + 1) {
+            	OIDS[i - 1] = cdOID + Integer.toString(i);
+            }
+            for (String oid : OIDS) {
+                pdu.add(new VariableBinding(new OID(oid)));
+            }
+            
+            pdu.setType(PDU.GET);
+
+            ResponseEvent event = snmp.send(pdu, target);
+            if (event != null) {
+                PDU responsePDU = event.getResponse();
+                if (responsePDU != null) {
+                	for (int i = 0 ; i < OIDS.length; i++) {
+                		VariableBinding vb = event.getResponse().get(i);
+                		double results = Long.parseLong(vb.getVariable().toString()) * allocationUnits[i];
+                		res[i] = (double)(results/1024/1024/1024);
+                		
+                	}
+                }
+                else return null;
+            }
+            else return null;
+            snmp.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+		return res;
+	}
+	
 	public static String[] GetFuLLName_Interface(String agentIpAddress, String community) throws IOException{
 		
 		int n = getMAXNum_Interfaces(agentIpAddress, community);
@@ -347,7 +497,7 @@ public class SNMP_interface extends JFrame {
 		textArea.setFont(new Font("Copperplate Gothic Light", Font.ITALIC, 14));
 		textArea.setForeground(new Color(0, 255, 64));
 		textArea.setBackground(new Color(0, 0, 0));
-		textArea.setBounds(28, 56, 552, 322);
+		textArea.setBounds(28, 56, 617, 383);
 		contentPane.add(textArea);
 		
 		Label label = new Label("Nhap IP agent");
@@ -355,6 +505,15 @@ public class SNMP_interface extends JFrame {
 		label.setFont(new Font("NSimSun", Font.BOLD, 15));
 		label.setBounds(28, 13, 120, 22);
 		contentPane.add(label);
+		
+		Button button_1 = new Button("Open Dial");
+		
+		button_1.setForeground(new Color(0, 255, 64));
+		button_1.setFont(new Font("NSimSun", Font.BOLD, 15));
+		button_1.setBackground(Color.BLACK);
+		button_1.setActionCommand("button1");
+		button_1.setBounds(471, 10, 102, 25);
+		contentPane.add(button_1);
 		
 		
 		
@@ -372,7 +531,7 @@ public class SNMP_interface extends JFrame {
 					SystName, SystLocation, SystContact, 
 					SystUptime, PC, hrStorageSize, hrMemorySize, 
 					hrStorageUsed, hrProcessorLoad, hrSystemProcesses,
-					Input_bandwidth, ipInReceies
+					Input_bandwidth, ipInReceies, test
 				};
 				
 				TransportMapping<?> transport;
@@ -396,6 +555,12 @@ public class SNMP_interface extends JFrame {
 			        System.out.println(getMAXNum_Interfaces(agent, community));
 			        String[] nameINF = GetFuLLName_Interface(agent, community);
 			        String[] nameSto = GetFuLLName_Storage(agent, community);
+			        int[] allo = GetFuLL_hrStorageAllocationUnits(agent, community);
+			        double[] stoSize = GetFuLL_hrStorageSize(agent, community);
+			        double[] stoUsed = GetFuLL_hrStorageUsed(agent, community);
+			        
+			        
+			        
 			        for (int i = 0 ; i < getMAXNum_Interfaces(agent, community) ; i++) {
 			        	System.out.println(nameINF[i]);
 			        }
@@ -406,6 +571,17 @@ public class SNMP_interface extends JFrame {
 			        
 			        for (int i = 0 ; i < getMAXNum_hrStorageIndex(agent, community) ; i++) {
 			        	System.out.println(nameSto[i]);
+			        }
+			        
+			        DecimalFormat dfZ = new DecimalFormat("#.##");
+			        
+			        for (int i = 0 ; i < getMAXNum_hrStorageIndex(agent, community) ; i++) {
+			        	System.out.println(dfZ.format(stoSize[i]));
+			        }
+			        
+			        
+			        for (int i = 0 ; i < getMAXNum_hrStorageIndex(agent, community) ; i++) {
+			        	System.out.println(dfZ.format(stoUsed[i]));
 			        }
 			        
 			        ResponseEvent response = snmp.get(pdu, target);
@@ -440,6 +616,15 @@ public class SNMP_interface extends JFrame {
 							textArea.append("\n"+Integer.toString(i+1) + ".  "+nameINF[i] + "");
 						}
 						textArea.append("\n\n");
+						textArea.append("Có " + getMAXNum_Interfaces(agent, community) + " loại bộ nhớ.  Thông tin của chúng như sau::\n\n");
+						for(int i = 0 ; i < getMAXNum_hrStorageIndex(agent, community) ; i++) {
+							textArea.append("\n"+Integer.toString(i+1) + ".  "+nameSto[i] + ":");
+							textArea.append("\n\n Tổng dung lượng: " + df.format(stoSize[i]) + "gb\n");
+							textArea.append("Dung lượng còn trống: " + df.format(stoSize[i] - stoUsed[i]) + "gb\n");
+							textArea.append("Tỉ lệ đã sử dụng: " + df.format((stoUsed[i]/stoSize[i]) * 100) + "%\n\n");
+						}
+						
+						textArea.append("\n\n\n\n");
 			        }
 			        else {
 						if (dem < 10)
@@ -451,6 +636,31 @@ public class SNMP_interface extends JFrame {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
+			}
+		});
+		button_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String agent = "udp:" + textField.getText().toString() + "/161";
+				
+				String community = "public";
+				//JOptionPane.showMessageDialog(null, "dsfdf");
+				JFrame newFrame = new JFrame("Giao diện mới");
+                newFrame.setSize(400, 400);
+                gaugeChart1 = new testing.javaswingdev.gauge.GaugeChart();
+                gaugeChart1.setFont(new Font("Tw Cen MT", Font.PLAIN, 15));
+                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Đóng cửa sổ mới khi đóng nó
+                
+                gaugeChart1.setMaxValue(70.0F);
+                gaugeChart1.setMinValue(0.0F);
+                gaugeChart1.setThresholdIndicator(50.0F);
+                gaugeChart1.setTitle("Test");
+                gaugeChart1.setTrackStart(70.0F);
+                gaugeChart1.setTrackStop(100.0F);
+                gaugeChart1.setValueAnimate((float)10);
+                newFrame.add(gaugeChart1);
+                newFrame.setVisible(true);
+                
+                newFrame.setVisible(true);
 			}
 		});
 	}
