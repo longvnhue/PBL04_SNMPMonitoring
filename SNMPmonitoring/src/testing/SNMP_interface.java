@@ -1,6 +1,7 @@
 package testing;
 
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -12,9 +13,11 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
 import java.awt.TextField;
+import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.TextArea;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -34,6 +37,8 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.util.OIDTextFormat;
+
+import java.util.ArrayList;
 import java.util.Base64;
 import javax.swing.JToolBar;
 import java.awt.Canvas;
@@ -46,6 +51,7 @@ public class SNMP_interface extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private int dem = 0;
+	public static int num_Logic_Processors = 0;
 
 	public static final String SystName = ".1.3.6.1.2.1.1.5.0";
 	public static final String SystUptime = ".1.3.6.1.2.1.1.3.0";
@@ -102,6 +108,56 @@ public class SNMP_interface extends JFrame {
 		}
 		
 		return i;
+	}
+	
+	public static int[] getFuLL_hrProcessorLoad(String agentIpAddress, String community) throws IOException{
+		ArrayList<Integer> res = new ArrayList<Integer>();
+		int cnt = 0;
+		try {
+		TransportMapping<?> transport = new DefaultUdpTransportMapping();
+        transport.listen();
+        Snmp snmp = new Snmp(transport);
+        snmp.listen();
+        CommunityTarget target = new CommunityTarget();
+        target.setCommunity(new OctetString(community));
+        target.setAddress(GenericAddress.parse(agentIpAddress));
+        target.setVersion(SnmpConstants.version2c);
+        target.setTimeout(3000);
+        PDU pdu = new PDU();
+        pdu.setType(PDU.GETNEXT);
+        pdu.add(new VariableBinding(new OID(".1.3.6.1.2.1.25.3.3.1.2")));
+        
+        
+        while (true) {
+        	ResponseEvent event = snmp.getNext(pdu, target);
+        	PDU response = event.getResponse();
+        	 if (response == null || response.getErrorStatus() != PDU.noError) {
+                 System.err.println("Request failed.");
+                 break;
+             }
+        	 else {
+        		 VariableBinding vb = response.get(0);
+                 OID nextOID = vb.getOid();
+                 if (nextOID.startsWith(new OID("1.3.6.1.2.1.25.3.3.1.2"))) {
+                	 cnt++;
+                	 res.add(Integer.parseInt(vb.getVariable().toString()));
+                 }
+                 else break;
+                 pdu.setRequestID(new Integer32(0));
+                 pdu.clear();
+                 pdu.add(new VariableBinding(nextOID));
+        	 }
+        }
+        snmp.close();
+		}catch (Exception ex) {
+            ex.printStackTrace();
+        }
+		int[] resBinding = new int[cnt];
+		for (int i = 0 ; i < cnt ; i++) {
+			resBinding[i] = res.get(i);
+		}
+		num_Logic_Processors = cnt;
+		return resBinding;
 	}
 	
 	
@@ -268,6 +324,9 @@ public class SNMP_interface extends JFrame {
         }
 		return res;
 	}
+	
+	
+	
 	
 	public static int[] GetFuLL_hrStorageAllocationUnits(String agentIpAddress, String community) throws IOException{
 		int n = getMAXNum_hrStorageIndex(agentIpAddress, community);
@@ -469,6 +528,7 @@ public class SNMP_interface extends JFrame {
 	 */
 	
 	public SNMP_interface() {
+		setTitle("PBL04_SNMP monitoring traffics");
 		setForeground(new Color(0, 255, 0));
 		setBackground(new Color(240, 240, 240));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -508,13 +568,13 @@ public class SNMP_interface extends JFrame {
 		label.setBounds(28, 13, 120, 22);
 		contentPane.add(label);
 		
-		Button button_1 = new Button("Open Dial");
+		Button button_1 = new Button("Memory Monitoring Dial");
 		
 		button_1.setForeground(new Color(0, 255, 64));
 		button_1.setFont(new Font("NSimSun", Font.BOLD, 15));
 		button_1.setBackground(Color.BLACK);
 		button_1.setActionCommand("button1");
-		button_1.setBounds(655, 56, 102, 25);
+		button_1.setBounds(655, 56, 206, 25);
 		contentPane.add(button_1);
 		
 		Choice choice = new Choice();
@@ -523,14 +583,23 @@ public class SNMP_interface extends JFrame {
 		choice.setBounds(540, 10, 176, 20);
 		contentPane.add(choice);
 		
-		Button button_1_1 = new Button("Monitor Dial");
+		Button button_1_1 = new Button("Storage Dial");
 		
 		button_1_1.setForeground(new Color(0, 255, 64));
 		button_1_1.setFont(new Font("NSimSun", Font.ITALIC, 15));
 		button_1_1.setBackground(Color.BLACK);
 		button_1_1.setActionCommand("button1");
-		button_1_1.setBounds(748, 10, 102, 25);
+		button_1_1.setBounds(759, 10, 102, 25);
 		contentPane.add(button_1_1);
+		
+		Button button_1_1_1 = new Button("CPU-Traffics monitoring Dial");
+		
+		button_1_1_1.setForeground(new Color(0, 255, 64));
+		button_1_1_1.setFont(new Font("NSimSun", Font.BOLD, 15));
+		button_1_1_1.setBackground(Color.BLACK);
+		button_1_1_1.setActionCommand("button1");
+		button_1_1_1.setBounds(651, 98, 210, 25);
+		contentPane.add(button_1_1_1);
 		
 		
 		
@@ -546,9 +615,9 @@ public class SNMP_interface extends JFrame {
 				String sysnameOID = SystName;
 				String[] oids = {
 					SystName, SystLocation, SystContact, 
-					SystUptime, PC, hrStorageSize, hrMemorySize, 
-					hrStorageUsed, hrProcessorLoad, hrSystemProcesses,
-					Input_bandwidth, ipInReceies, test
+					SystUptime, PC, hrMemorySize, 
+					 hrProcessorLoad, hrSystemProcesses,
+					Input_bandwidth, ipInReceies
 				};
 				
 				TransportMapping<?> transport;
@@ -571,10 +640,11 @@ public class SNMP_interface extends JFrame {
 			        
 			        System.out.println(getMAXNum_Interfaces(agent, community));
 			        String[] nameINF = GetFuLLName_Interface(agent, community);
-			        String[] nameSto = GetFuLLName_Storage(agent, community);
 			        int[] allo = GetFuLL_hrStorageAllocationUnits(agent, community);
+			        String[] nameSto = GetFuLLName_Storage(agent, community);
 			        double[] stoSize = GetFuLL_hrStorageSize(agent, community);
 			        double[] stoUsed = GetFuLL_hrStorageUsed(agent, community);
+			        int[] allprocessorLoad = getFuLL_hrProcessorLoad(agent, community);
 			        
 			        
 			        
@@ -602,7 +672,14 @@ public class SNMP_interface extends JFrame {
 			        for (int i = 0 ; i < getMAXNum_hrStorageIndex(agent, community) ; i++) {
 			        	System.out.println(dfZ.format(stoUsed[i]));
 			        }
-			        
+			        System.out.println("\n\n");
+			        double CPUZ = 0;
+			        for (int i = 0 ; i < num_Logic_Processors ; i++)
+			        {
+			        	CPUZ += allprocessorLoad[i];
+			        	System.out.println(Integer.toString(allprocessorLoad[i]));
+			        }
+			        CPUZ = CPUZ / num_Logic_Processors;
 			        ResponseEvent response = snmp.get(pdu, target);
 			        if (response != null && response.getResponse() != null) {
 			        	//VariableBinding vb = response.getResponse().get(0);
@@ -616,7 +693,7 @@ public class SNMP_interface extends JFrame {
 							
 							VariableBinding vb = response.getResponse().get(i);
 							if (oids[i] == ".1.3.6.1.2.1.25.3.3.1.2.7")
-								textArea.append( oids[i] + " " +  ": CPU đang chiếm trung bình: " + vb.getVariable().toString() + "% trong 1 phút qua\n");
+								textArea.append( ".1.3.6.1.2.1.25.3.3.1.2..." +  ": CPU đang chiếm trung bình: " + df.format(CPUZ) + "% trong 1 phút qua\n");
 						
 							else if (oids[i] == ".1.3.6.1.2.1.25.2.2.0") 
 								textArea.append(oids[i] + ":  RAM " + df.format(Double.parseDouble(vb.getVariable().toString()) / 1024 / 1024) + " gb\n");	
@@ -660,68 +737,67 @@ public class SNMP_interface extends JFrame {
 		});
 		button_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				testing.javaswingdev.gauge.GaugeChart gaugeChart1;
-				testing.javaswingdev.gauge.GaugeChart gaugeChart2;
 				String agent = "udp:" + textField.getText().toString() + "/161";
-				
 				String community = "public";
-				//JOptionPane.showMessageDialog(null, "dsfdf");
-				JFrame newFrame = new JFrame("Dial Monitor Traffics");
+				testing.javaswingdev.gauge.GaugeChart gaugeChart1;
+				
+				
+				
+				
+		        double memused = 0.0F;
+		        double stototal = 0.0F;
+		        double memUtilzation = 0.0F;
+		        DecimalFormat df = new DecimalFormat("#.##");
+				
+				JFrame newFrame = new JFrame("Memory Monitor Traffics");
 				newFrame.getContentPane().setBackground(Color.decode("#C6ded7"));
-                newFrame.setSize(1000, 500);
-                testing.javaswingdev.gauge.GaugeChart[] gaugeCharts = new testing.javaswingdev.gauge.GaugeChart[5];
+                newFrame.setSize(550, 400);
+                newFrame.setLayout(new FlowLayout());
+                
+                
+                
                 newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+             	gaugeChart1 = new testing.javaswingdev.gauge.GaugeChart();
+                gaugeChart1.setFont(new Font("Tw Cen MT", Font.PLAIN, 12));
                 
-                for (int i = 0 ; i <= 4 ; i++) {
-                	gaugeCharts[i] = new testing.javaswingdev.gauge.GaugeChart();
-                }
-                
-                for (int i = 0 ; i <= 2 ; i++) {
-                	gaugeCharts[i].setFont(new Font("Tw Cen MT", Font.PLAIN, 15));
-                    
-                    gaugeCharts[i].setMaxValue(70.0F);
-                    gaugeCharts[i].setMinValue(0.0F);
-                    gaugeCharts[i].setThresholdIndicator(50.0F);
-                    gaugeCharts[i].setTitle("Test");
-                    gaugeCharts[i].setTrackStart(70.0F);
-                    gaugeCharts[i].setTrackStop(100.0F);
-                    gaugeCharts[i].setValueAnimate((float)((i + 2)*7.77));
-                    gaugeCharts[i].setBounds(0 + (i)*750, 0, 250, 250);
-                    newFrame.getContentPane().add(gaugeCharts[i]);
-                }
-                
-                gaugeCharts[2].setBounds(200,200,250,250);
-                // gaugeChart1 = new testing.javaswingdev.gauge.GaugeChart();
-                // gaugeChart1.setFont(new Font("Tw Cen MT", Font.PLAIN, 15));
-                // newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Đóng cửa sổ mới khi đóng nó
-                
-                // gaugeChart1.setMaxValue(70.0F);
-                // gaugeChart1.setMinValue(0.0F);
-                // gaugeChart1.setThresholdIndicator(50.0F);
-                // gaugeChart1.setTitle("Test");
-                // gaugeChart1.setTrackStart(70.0F);
-                // gaugeChart1.setTrackStop(100.0F);
-                // gaugeChart1.setValueAnimate((float)10);
-                // gaugeChart1.setBounds(0, 0, 150, 150);
-                // newFrame.add(gaugeChart1);
-                
-                // gaugeChart2 = new testing.javaswingdev.gauge.GaugeChart();
-                // gaugeChart2.setFont(new Font("Tw Cen MT", Font.PLAIN, 15));
+                gaugeChart1.setMaxValue(100.0F);
+                gaugeChart1.setMinValue(0.0F);
+                gaugeChart1.setThresholdIndicator(50.0F);
+                gaugeChart1.setTrackStart(70.0F);
+                gaugeChart1.setTrackStop(100.0F);
+				try {
+					String[] nameSto = GetFuLLName_Storage(agent, community);
+					double[] stoSize = GetFuLL_hrStorageSize(agent, community);
+			        double[] stoUsed = GetFuLL_hrStorageUsed(agent, community);
+			        for (int i = 0 ; i < nameSto.length ; i++) if (nameSto[i].equals("Physical Memory")) {
+			        	memused = stoUsed[i];
+			        	stototal = stoSize[i];
+			        	break;
+			        }
+			        memUtilzation = (memused / stototal) * 100;
+			        
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				gaugeChart1.setTitle("RAM Utilization");
+                gaugeChart1.setValueAnimate((float)memUtilzation);
                 
                 
-                // gaugeChart2.setMaxValue(70.0F);
-                // gaugeChart2.setMinValue(0.0F);
-                // gaugeChart2.setThresholdIndicator(50.0F);
-                // gaugeChart2.setTitle("Test44trgfrf");
-                // gaugeChart2.setTrackStart(70.0F);
-                // gaugeChart2.setTrackStop(100.0F);
-                // gaugeChart2.setValueAnimate((float)22);
-                // //gaugeChart2.setBounds(200, 0, 150, 150);
-                // newFrame.add(gaugeChart2);
+                Label lb1 = new Label();
+                lb1.setFont(new Font("Tw Cen MT", Font.BOLD, 16));
+                lb1.setText("Total memory: " + df.format(stototal) + " gb");
+                lb1.setBounds(0, 100, 200,20);
+                Label lb2 = new Label();
+                lb2.setFont(new Font("Tw Cen MT", Font.BOLD, 16));
+                lb2.setText("Memory in use: " + df.format(memused));
+                lb2.setBounds(300, 100, 200,20);
                 
+                newFrame.getContentPane().add(lb1);
+                newFrame.getContentPane().add(gaugeChart1);
+                newFrame.getContentPane().add(lb2);
                 newFrame.setVisible(true);
-			}
-		});
+		}});
 		
 		button_1_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -729,25 +805,27 @@ public class SNMP_interface extends JFrame {
 				String agent = "udp:" + textField.getText().toString() + "/161";
 				
 				String community = "public";
-				//JOptionPane.showMessageDialog(null, "dsfdf");
-				JFrame newFrame = new JFrame("Dial Monitor Traffics");
-				newFrame.getContentPane().setBackground(Color.decode("#C6ded7"));
-                newFrame.setSize(400, 400);
-                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-             	gaugeChart1 = new testing.javaswingdev.gauge.GaugeChart();
-                gaugeChart1.setFont(new Font("Tw Cen MT", Font.PLAIN, 12));
-                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Đóng cửa sổ mới khi đóng nó
-                
-                gaugeChart1.setMaxValue(100.0F);
-                gaugeChart1.setMinValue(0.0F);
-                gaugeChart1.setThresholdIndicator(50.0F);
-                gaugeChart1.setTrackStart(70.0F);
-                gaugeChart1.setTrackStop(100.0F);
-                //gaugeChart1.setValueAnimate((float)10);
-                int index = -1;
-                float getUtilization = 0;
-                String choiced = choice.getSelectedItem();
-                System.out.println(choiced);
+				
+				if (choice.getItemCount() <= 0) JOptionPane.showMessageDialog(null, "ComboBox không có Item (không có Storage) để hiển thị!!");
+				else {
+					JFrame newFrame = new JFrame("Dial Monitor Traffics");
+					newFrame.getContentPane().setBackground(Color.decode("#C6ded7"));
+	                newFrame.setSize(400, 400);
+	                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	             	gaugeChart1 = new testing.javaswingdev.gauge.GaugeChart();
+	                gaugeChart1.setFont(new Font("Tw Cen MT", Font.PLAIN, 12));
+	                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Đóng cửa sổ mới khi đóng nó
+	                
+	                gaugeChart1.setMaxValue(100.0F);
+	                gaugeChart1.setMinValue(0.0F);
+	                gaugeChart1.setThresholdIndicator(50.0F);
+	                gaugeChart1.setTrackStart(70.0F);
+	                gaugeChart1.setTrackStop(100.0F);
+	                //gaugeChart1.setValueAnimate((float)10);
+	                int index = -1;
+	                float getUtilization = 0;
+	                String choiced = choice.getSelectedItem();
+                //System.out.println(choiced);
                 try {
 					String[] nameSto = GetFuLLName_Storage(agent, community);
 					double[] usedSto = GetFuLL_hrStorageUsed(agent, community);
@@ -766,10 +844,58 @@ public class SNMP_interface extends JFrame {
 				}
                 gaugeChart1.setTitle("hrStorageIndex " + Integer.toString(index));
                 gaugeChart1.setValueAnimate(getUtilization);
+                gaugeChart1.setBounds(0, 0, 300, 300);
                 
                 //gaugeChart1.setBounds(0, 0, 150, 150);
-                newFrame.add(gaugeChart1);
+                newFrame.getContentPane().add(gaugeChart1);
+                
+                
                 newFrame.setVisible(true);
+			}}
+				//JOptionPane.showMessageDialog(null, "dsfdf");
+				
+		});
+		
+		
+		button_1_1_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//JOptionPane.showMessageDialog(null, "HeSoLo");
+				
+				String agent = "udp:" + textField.getText().toString() + "/161";
+				
+				String community = "public";
+                testing.javaswingdev.gauge.GaugeChart[] charts = new testing.javaswingdev.gauge.GaugeChart[num_Logic_Processors];
+                if (num_Logic_Processors == 0) JOptionPane.showMessageDialog(null, "Chưa khởi tạo SNMP poll!");
+                else {
+                	JFrame newFrame = new JFrame("CPU Monitor Traffics");
+					newFrame.getContentPane().setBackground(Color.decode("#C6ded7"));
+	                newFrame.setSize(1500, 750);
+	                newFrame.setLayout(new FlowLayout());
+	                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                	try {
+    					int[] processorLoads = getFuLL_hrProcessorLoad(agent, community);  
+    					for (int i = 0 ; i < num_Logic_Processors ; i++) {
+    						charts[i] = new testing.javaswingdev.gauge.GaugeChart();
+    						charts[i].setFont(new Font("Tw Cen MT", Font.PLAIN, 12));
+    						charts[i].setMaxValue(100.0F);
+    			            charts[i].setMinValue(0.0F);
+    			            charts[i].setThresholdIndicator(50.0F);
+    			            charts[i].setTrackStart(70.0F);
+    			            charts[i].setTrackStop(100.0F);
+    			            charts[i].setTitle("hrProcessor # " + Integer.toString(i+1));
+    		                charts[i].setValueAnimate(processorLoads[i] + .0F);
+    		                //charts[i].setBounds(0, 0, 400, 400);
+    		                newFrame.getContentPane().add(charts[i]);
+    					}
+    					
+    				} catch (IOException e1) {
+    					// TODO Auto-generated catch block
+    					e1.printStackTrace();
+    				}
+                	newFrame.setVisible(true);
+                	
+                	
+                }
 			}
 		});
 	}
