@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.text.DecimalFormat;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.snmp4j.CommunityTarget;
@@ -84,7 +85,69 @@ public class SNMP_interface extends JFrame {
 				}
 			}
 		});
+	
 	}
+	
+	
+	
+	public List<String> Ip_Conveyor(String ip, String SM){
+		List<String> targeRes = new ArrayList<>();
+		String[] ip_elements = ip.split("\\.");
+		String[] SM_elements = SM.split("\\.");
+		String[] NA  =  new String[4];
+		String[] BA  =  new String[4];
+		for (int i = 0 ; i < ip_elements.length ; i++) {
+			NA[i] = Integer.toString(Integer.parseInt(ip_elements[i]) & Integer.parseInt(SM_elements[i]));
+			//targeRes.add(NA[i]);
+		}
+		for (int i = 0 ; i < ip_elements.length ; i++) {
+			BA[i] = Integer.toString(Integer.parseInt(NA[i]) ^ (255-Integer.parseInt(SM_elements[i])));
+			//targeRes.add(BA[i]);
+		}
+		
+		int x, y, z, t;
+		x = Integer.parseInt(NA[0]);
+		y = Integer.parseInt(NA[1]);
+		z = Integer.parseInt(NA[2]);
+		t = Integer.parseInt(NA[3]);
+		int Tx, Ty, Tz, Tt;
+		Tx = Integer.parseInt(BA[0]);
+		Ty = Integer.parseInt(BA[1]);
+		Tz = Integer.parseInt(BA[2]);
+		Tt = Integer.parseInt(BA[3]);
+		
+		while (true) {
+			if (x == Tx && y == Ty && z == Tz && t == Tt) break;
+			else {
+				if (t == 256) {
+					t = 0;
+					z++;
+				}
+				if (z == 256) {
+					z = 0;
+					t = 0;
+					y++;
+				}
+				if (y == 256) {
+					t = 0;
+					z = 0;
+					y = 0;
+					x++;
+				}
+				String part1, part2, part3, part4;
+				part1 = Integer.toString(x);
+				part2 = Integer.toString(y);
+				part3 = Integer.toString(z);
+				part4 = Integer.toString(t);
+				targeRes.add(part1 + "." + part2 + "." + part3 + "." + part4);
+				t = t + 1;
+			}
+		}
+		targeRes.add(BA[0] + "." + BA[1] + "." + BA[2] + "." + BA[3]);
+		
+		return targeRes;
+	}
+	
 	//.Error FUnc
 	public int getMAXDevice_Index(CommunityTarget target, Snmp snmp) {
 		String oid = ".1.3.6.1.2.1.25.3.2.1.1.";
@@ -532,7 +595,7 @@ public class SNMP_interface extends JFrame {
 		setForeground(new Color(0, 255, 0));
 		setBackground(new Color(240, 240, 240));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 898, 617);
+		setBounds(100, 100, 898, 507);
 		contentPane = new JPanel();
 		contentPane.setBackground(new Color(0, 0, 0));
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -574,7 +637,7 @@ public class SNMP_interface extends JFrame {
 		button_1.setFont(new Font("NSimSun", Font.BOLD, 15));
 		button_1.setBackground(Color.BLACK);
 		button_1.setActionCommand("button1");
-		button_1.setBounds(655, 56, 206, 25);
+		button_1.setBounds(651, 56, 210, 25);
 		contentPane.add(button_1);
 		
 		Choice choice = new Choice();
@@ -600,6 +663,50 @@ public class SNMP_interface extends JFrame {
 		button_1_1_1.setActionCommand("button1");
 		button_1_1_1.setBounds(651, 98, 210, 25);
 		contentPane.add(button_1_1_1);
+		
+		Button button_2 = new Button("ip Scope");
+		button_2.setForeground(new Color(0, 255, 64));
+		button_2.setFont(new Font("NSimSun", Font.BOLD, 15));
+		button_2.setBackground(Color.BLACK);
+		
+		button_2.setBounds(651, 224, 210, 22);
+		contentPane.add(button_2);
+		
+		TextField textField_1 = new TextField();
+		textField_1.setBounds(651, 149, 210, 22);
+		contentPane.add(textField_1);
+		
+		TextField textField_1_1 = new TextField();
+		textField_1_1.setBounds(651, 196, 210, 22);
+		contentPane.add(textField_1_1);
+		
+		Label label_1 = new Label("IP Address");
+		label_1.setForeground(new Color(0, 255, 0));
+		label_1.setFont(new Font("Leelawadee UI", Font.BOLD, 15));
+		label_1.setBounds(714, 129, 83, 22);
+		contentPane.add(label_1);
+		
+		Label label_1_1 = new Label("Subnet Mask");
+		label_1_1.setForeground(Color.GREEN);
+		label_1_1.setFont(new Font("NSimSun", Font.BOLD, 15));
+		label_1_1.setBounds(706, 177, 106, 22);
+		contentPane.add(label_1_1);
+		
+		Button button_2_1 = new Button("Check response");
+		
+		button_2_1.setForeground(new Color(0, 255, 64));
+		button_2_1.setFont(new Font("NSimSun", Font.BOLD, 15));
+		button_2_1.setBackground(Color.BLACK);
+		button_2_1.setBounds(651, 252, 210, 22);
+		contentPane.add(button_2_1);
+		
+		TextArea textArea_1 = new TextArea();
+		textArea_1.setEditable(false);
+		textArea_1.setFont(new Font("Copperplate Gothic Light", Font.BOLD, 12));
+		textArea_1.setForeground(new Color(0, 255, 64));
+		textArea_1.setBackground(new Color(0, 0, 0));
+		textArea_1.setBounds(651, 279, 210, 160);
+		contentPane.add(textArea_1);
 		
 		
 		
@@ -711,6 +818,7 @@ public class SNMP_interface extends JFrame {
 						for (int i = 0 ; i < getMAXNum_Interfaces(agent, community) ; i++) {
 							textArea.append("\n"+Integer.toString(i+1) + ".  "+nameINF[i] + "");
 						}
+						choice.removeAll();
 						textArea.append("\n\n");
 						textArea.append("Có " + getMAXNum_Interfaces(agent, community) + " loại bộ nhớ.  Thông tin của chúng như sau::\n\n");
 						for(int i = 0 ; i < getMAXNum_hrStorageIndex(agent, community) ; i++) {
@@ -735,6 +843,17 @@ public class SNMP_interface extends JFrame {
 				}
 			}
 		});
+		
+		
+		button_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				List<String> A = Ip_Conveyor(textField_1.getText(), textField_1_1.getText());
+				for (String p : A) {
+					textArea_1.append(p + "\n");
+				}
+			
+			}
+		});
 		button_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String agent = "udp:" + textField.getText().toString() + "/161";
@@ -752,7 +871,7 @@ public class SNMP_interface extends JFrame {
 				JFrame newFrame = new JFrame("Memory Monitor Traffics");
 				newFrame.getContentPane().setBackground(Color.decode("#C6ded7"));
                 newFrame.setSize(550, 400);
-                newFrame.setLayout(new FlowLayout());
+                newFrame.getContentPane().setLayout(new FlowLayout());
                 
                 
                 
@@ -870,7 +989,7 @@ public class SNMP_interface extends JFrame {
                 	JFrame newFrame = new JFrame("CPU Monitor Traffics");
 					newFrame.getContentPane().setBackground(Color.decode("#C6ded7"));
 	                newFrame.setSize(1500, 750);
-	                newFrame.setLayout(new FlowLayout());
+	                newFrame.getContentPane().setLayout(new FlowLayout());
 	                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 	try {
     					int[] processorLoads = getFuLL_hrProcessorLoad(agent, community);  
@@ -896,6 +1015,42 @@ public class SNMP_interface extends JFrame {
                 	
                 	
                 }
+			}
+		});
+		
+		button_2_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				List<String> A = Ip_Conveyor(textField_1.getText(), textField_1_1.getText());
+				String communityString = "public";
+				PDU pdu = new PDU();
+				pdu.add(new VariableBinding(new OID(".1.3.6.1.2.1.1.1.0")));
+		        pdu.setType(PDU.GET);
+		        TransportMapping<?> transport;
+				try {
+					transport = new DefaultUdpTransportMapping();
+					Snmp snmp = new Snmp(transport);
+					transport.listen();
+					for (String ip : A) {
+						CommunityTarget target = new CommunityTarget();
+						target.setCommunity(new OctetString(communityString));
+			            target.setAddress(GenericAddress.parse("udp:" + ip + "/161"));     
+			            target.setVersion(SnmpConstants.version2c);
+			            target.setRetries(2);
+			            target.setTimeout(100);
+			            ResponseEvent response = snmp.send(pdu, target);
+			            if (response != null && response.getResponse() != null) {
+			            	textArea_1.append("IP: " + ip + " connected!\n");
+		                } else {
+		                	textArea_1.append("IP: " + ip + " no response!\n");
+		                }
+			            
+						
+					}
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		       
 			}
 		});
 	}
