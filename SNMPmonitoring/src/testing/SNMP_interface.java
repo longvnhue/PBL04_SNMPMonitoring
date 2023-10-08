@@ -25,6 +25,7 @@ import java.awt.Label;
 import java.io.IOException;
 import java.net.SocketException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +42,12 @@ import org.snmp4j.util.OIDTextFormat;
 
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
+
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
+
 import java.awt.Canvas;
 import java.awt.Choice;
 
@@ -185,7 +191,7 @@ public class SNMP_interface extends JFrame {
         target.setCommunity(new OctetString(community));
         target.setAddress(GenericAddress.parse(agentIpAddress));
         target.setVersion(SnmpConstants.version2c);
-        target.setTimeout(3000);
+        target.setTimeout(1000);
         PDU pdu = new PDU();
         pdu.setType(PDU.GETNEXT);
         pdu.add(new VariableBinding(new OID(".1.3.6.1.2.1.25.3.3.1.2")));
@@ -234,7 +240,7 @@ public class SNMP_interface extends JFrame {
         target.setCommunity(new OctetString(community));
         target.setAddress(GenericAddress.parse(agentIpAddress));
         target.setVersion(SnmpConstants.version2c);
-        target.setTimeout(3000);
+        target.setTimeout(1000);
         PDU pdu = new PDU();
         pdu.setType(PDU.GETNEXT);
         pdu.add(new VariableBinding(new OID("1.3.6.1.2.1.25.2.3.1.1")));
@@ -284,7 +290,7 @@ public class SNMP_interface extends JFrame {
             target.setAddress(GenericAddress.parse(agentIpAddress));
             target.setVersion(SnmpConstants.version2c);
             target.setRetries(2);
-            target.setTimeout(5000);
+            target.setTimeout(1000);
 
             Snmp snmp = new Snmp(transport);
             PDU pdu = new PDU();
@@ -354,7 +360,7 @@ public class SNMP_interface extends JFrame {
             target.setAddress(GenericAddress.parse(agentIpAddress));
             target.setVersion(SnmpConstants.version2c);
             target.setRetries(2);
-            target.setTimeout(5000);
+            target.setTimeout(1000);
 
             Snmp snmp = new Snmp(transport);
             PDU pdu = new PDU();
@@ -403,7 +409,7 @@ public class SNMP_interface extends JFrame {
             target.setAddress(GenericAddress.parse(agentIpAddress));
             target.setVersion(SnmpConstants.version2c);
             target.setRetries(2);
-            target.setTimeout(5000);
+            target.setTimeout(1000);
 
             Snmp snmp = new Snmp(transport);
             PDU pdu = new PDU();
@@ -451,7 +457,7 @@ public class SNMP_interface extends JFrame {
             target.setAddress(GenericAddress.parse(agentIpAddress));
             target.setVersion(SnmpConstants.version2c);
             target.setRetries(2);
-            target.setTimeout(5000);
+            target.setTimeout(1000);
 
             Snmp snmp = new Snmp(transport);
             PDU pdu = new PDU();
@@ -501,7 +507,7 @@ public class SNMP_interface extends JFrame {
             target.setAddress(GenericAddress.parse(agentIpAddress));
             target.setVersion(SnmpConstants.version2c);
             target.setRetries(2);
-            target.setTimeout(5000);
+            target.setTimeout(1000);
 
             Snmp snmp = new Snmp(transport);
             PDU pdu = new PDU();
@@ -550,7 +556,7 @@ public class SNMP_interface extends JFrame {
             target.setAddress(GenericAddress.parse(agentIpAddress));
             target.setVersion(SnmpConstants.version2c);
             target.setRetries(2);
-            target.setTimeout(5000);
+            target.setTimeout(1000);
 
             Snmp snmp = new Snmp(transport);
             PDU pdu = new PDU();
@@ -847,6 +853,7 @@ public class SNMP_interface extends JFrame {
 		
 		button_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				textArea_1.setText("");
 				List<String> A = Ip_Conveyor(textField_1.getText(), textField_1_1.getText());
 				for (String p : A) {
 					textArea_1.append(p + "\n");
@@ -929,7 +936,8 @@ public class SNMP_interface extends JFrame {
 				else {
 					JFrame newFrame = new JFrame("Dial Monitor Traffics");
 					newFrame.getContentPane().setBackground(Color.decode("#C6ded7"));
-	                newFrame.setSize(400, 400);
+					newFrame.getContentPane().setLayout(new FlowLayout());
+	                newFrame.setSize(600, 400);
 	                newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	             	gaugeChart1 = new testing.javaswingdev.gauge.GaugeChart();
 	                gaugeChart1.setFont(new Font("Tw Cen MT", Font.PLAIN, 12));
@@ -963,10 +971,28 @@ public class SNMP_interface extends JFrame {
 				}
                 gaugeChart1.setTitle("hrStorageIndex " + Integer.toString(index));
                 gaugeChart1.setValueAnimate(getUtilization);
-                gaugeChart1.setBounds(0, 0, 300, 300);
+                //gaugeChart1.setBounds(0, 0, 300, 300);
                 
                 //gaugeChart1.setBounds(0, 0, 150, 150);
                 newFrame.getContentPane().add(gaugeChart1);
+                
+                Label timeLabel = new Label();
+
+		        timeLabel.setFont(new Font("Tw Cen MT", Font.BOLD, 20));
+		        //timeLabel.setAlignment(SwingConstants.CENTER);
+		        newFrame.getContentPane().add(timeLabel);
+
+		        Timer timer = new Timer(1000, new ActionListener() {
+		            @Override
+		            public void actionPerformed(ActionEvent e) {
+		                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		                Date now = new Date();
+		                String timeStr = sdf.format(now);
+		                timeLabel.setText(timeStr);
+		            }
+		        });
+
+		        timer.start();
                 
                 
                 newFrame.setVisible(true);
@@ -1021,6 +1047,7 @@ public class SNMP_interface extends JFrame {
 		button_2_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				List<String> A = Ip_Conveyor(textField_1.getText(), textField_1_1.getText());
+				textArea_1.setText("");
 				String communityString = "public";
 				PDU pdu = new PDU();
 				pdu.add(new VariableBinding(new OID(".1.3.6.1.2.1.1.1.0")));
@@ -1036,7 +1063,7 @@ public class SNMP_interface extends JFrame {
 			            target.setAddress(GenericAddress.parse("udp:" + ip + "/161"));     
 			            target.setVersion(SnmpConstants.version2c);
 			            target.setRetries(2);
-			            target.setTimeout(100);
+			            target.setTimeout(50);
 			            ResponseEvent response = snmp.send(pdu, target);
 			            if (response != null && response.getResponse() != null) {
 			            	textArea_1.append("IP: " + ip + " connected!\n");
@@ -1053,5 +1080,36 @@ public class SNMP_interface extends JFrame {
 		       
 			}
 		});
+		
+		
+		
+		// button_1_1_1_1.addActionListener(new ActionListener() {
+		// 	public void actionPerformed(ActionEvent e) {
+		// 		JFrame clockFrame = new JFrame("Đồng hồ điện tử");
+		//         Label timeLabel = new Label();
+
+		//         timeLabel.setFont(new Font("Tw Cen MT", Font.BOLD, 25));
+		//         timeLabel.setAlignment(SwingConstants.CENTER);
+		//         clockFrame.add(timeLabel);
+
+		//         Timer timer = new Timer(1000, new ActionListener() {
+		//             @Override
+		//             public void actionPerformed(ActionEvent e) {
+		//                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		//                 Date now = new Date();
+		//                 String timeStr = sdf.format(now);
+		//                 timeLabel.setText(timeStr);
+		//             }
+		//         });
+
+		//         timer.start();
+
+		//         clockFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		//         clockFrame.setSize(300, 100);
+		//         clockFrame.setLocationRelativeTo(null);
+		//         clockFrame.setVisible(true);
+		// 	}
+		// });
+		
 	}
 }
